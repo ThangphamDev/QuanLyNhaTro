@@ -459,7 +459,7 @@ export default function Rooms() {
                       <CardMedia 
                         component="div" 
                         sx={{ 
-                          height: 240, 
+                          height: 220, 
                           position: 'relative', 
                           overflow: 'hidden',
                           background: 'linear-gradient(45deg, #e3f2fd, #bbdefb)'
@@ -617,11 +617,11 @@ export default function Rooms() {
               <Stack spacing={2}>
                 {pagedRooms.map((room) => (
                   <Card key={room.id} sx={{ p: 3, borderRadius: 3, display: 'flex', gap: 3, alignItems: 'stretch', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-                    <Box sx={{ width: { xs: 120, sm: 200 }, height: { xs: 90, sm: 140 }, borderRadius: 2, overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
+          <Box sx={{ width: 220, height: 160, borderRadius: 2, overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
                       {room.room_images && room.room_images.length > 0 ? (
-                        <img src={`http://localhost:4000${room.room_images[0].image_url}`} alt="Room" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={`http://localhost:4000${room.room_images[0].image_url}`} alt="Room" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
-                        <Box sx={{ width: '100%', height: '100%', bgcolor: 'grey.200', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ width: '100%', height: '100%', bgcolor: 'grey.200', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <HomeIcon sx={{ fontSize: 40, color: 'grey.400' }} />
                         </Box>
                       )}

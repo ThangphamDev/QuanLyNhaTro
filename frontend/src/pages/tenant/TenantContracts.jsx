@@ -61,6 +61,9 @@ export default function TenantContracts() {
       const r = await api.get('/tenant/contracts')
       setContracts(r.data)
       setTimeout(() => setSuccess(''), 3000)
+  // Auto-close detail dialog on successful sign
+  setDetailOpen(false)
+  setSelectedContract(null)
     } catch (e) {
       setError(e.response?.data?.message || 'Ký hợp đồng thất bại')
     } finally {

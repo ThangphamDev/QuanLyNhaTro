@@ -4,7 +4,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { sequelize, syncDatabase } from './models/index.js';
+import { sequelize, syncDatabase, ensureMigrations } from './models/index.js';
 import { seedBasic } from './seed.js';
 import authRoutes from './routes/auth.js';
 import publicRoutes from './routes/public.js';
@@ -41,6 +41,7 @@ async function start() {
     if (process.env.DB_SYNC === 'true') {
       await syncDatabase();
     }
+    await ensureMigrations();
     await seedBasic();
     app.listen(PORT, () => console.log(`API listening on http://localhost:${PORT}`));
   } catch (err) {

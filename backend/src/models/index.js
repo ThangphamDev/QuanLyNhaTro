@@ -28,6 +28,7 @@ export const User = sequelize.define('users', {
   phone_number: { type: DataTypes.STRING(15) },
   avatar_url: { type: DataTypes.STRING(255) },
   is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
+  must_change_password: { type: DataTypes.BOOLEAN, defaultValue: false },
 });
 
 export const Property = sequelize.define('properties', {
@@ -208,6 +209,25 @@ export async function syncDatabase() {
     } catch (fallbackError) {
       console.error('Database sync fallback error:', fallbackError.message);
     }
+  }
+}
+
+// Minimal migration helper for columns we add post-initialization
+export async function ensureMigrations() {
+  const qi = sequelize.getQueryInterface();
+  // Ensure users.must_change_password exists
+  try {
+    const desc = await qi.describeTable('users');
+    if (!('must_change_password' in desc)) {
+      await qi.addColumn('users', 'must_change_password', {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      });
+      console.log('Added users.must_change_password');
+    }
+  } catch (e) {
+    // Ignore if table not found; will be created by sync
   }
 }
 

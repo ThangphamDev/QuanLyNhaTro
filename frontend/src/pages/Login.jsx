@@ -41,7 +41,11 @@ export default function Login() {
       if (res.data.user.role === 'admin') {
         navigate('/admin')
       } else {
-        navigate('/tenant')
+        if (res.data.user.must_change_password) {
+          navigate('/tenant/change-password')
+        } else {
+          navigate('/tenant')
+        }
       }
     } catch (e) {
       setError(e.response?.data?.message || 'Đăng nhập thất bại')

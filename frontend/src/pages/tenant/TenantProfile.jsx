@@ -19,11 +19,14 @@ import {
   Cancel,
   Email,
   Phone,
-  Badge
+  Badge,
+  LockReset
 } from '@mui/icons-material'
+  LockReset
 import { useForm } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import api from '../../api'
 
 const schema = yup.object({
   full_name: yup.string().required('Họ tên là bắt buộc'),
@@ -35,16 +38,31 @@ export default function TenantProfile() {
   const [editing, setEditing] = useState(false)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
+  const [pwdLoading, setPwdLoading] = useState(false)
+  const [pwdError, setPwdError] = useState('')
+  const [pwdSuccess, setPwdSuccess] = useState('')
+  const [pwd, setPwd] = useState({ current: '', next: '', confirm: '' })
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: yupResolver(schema)
   })
 
   useEffect(() => {
-    // Get user data from localStorage
-    const userData = JSON.parse(localStorage.getItem('user') || '{}')
-    setUser(userData)
-    reset(userData)
+    // Load latest profile from server for accurate status/phone
+    api.get('/tenant/profile')
+      .then(r => {
+        setUser(r.data)
+        reset(r.data)
+        // sync a subset back to localStorage for header/menu
+        const stored = JSON.parse(localStorage.getItem('user') || '{}')
+        localStorage.setItem('user', JSON.stringify({ ...stored, full_name: r.data.full_name, phone_number: r.data.phone_number, is_active: r.data.is_active }))
+      })
+      .catch(() => {
+        // fallback to localStorage if API fails
+        const userData = JSON.parse(localStorage.getItem('user') || '{}')
+        setUser(userData)
+        reset(userData)
+      })
   }, [reset])
 
   const onSubmit = async (data) => {
@@ -52,13 +70,11 @@ export default function TenantProfile() {
       setError('')
       setSuccess('')
       
-      // In a real app, you would call an API to update the user profile
-      // await api.put('/tenant/profile', data)
-      
-      // For now, just update localStorage
-      const updatedUser = { ...user, ...data }
-      localStorage.setItem('user', JSON.stringify(updatedUser))
-      setUser(updatedUser)
+  // Update profile via API
+  const payload = { full_name: data.full_name, phone_number: data.phone_number }
+  const r = await api.put('/tenant/profile', payload)
+  localStorage.setItem('user', JSON.stringify({ ...(JSON.parse(localStorage.getItem('user') || '{}')), full_name: r.data.full_name, phone_number: r.data.phone_number, is_active: r.data.is_active }))
+  setUser(r.data)
       setEditing(false)
       setSuccess('Thông tin đã được cập nhật thành công!')
     } catch (error) {
@@ -71,6 +87,28 @@ export default function TenantProfile() {
     setEditing(false)
     setError('')
   }
+
+  const changePassword = async (e) => {
+      e.preventDefault()
+      setPwdError('')
+      setPwdSuccess('')
+      if (!pwd.next || pwd.next.length < 6) return setPwdError('Mật khẩu mới tối thiểu 6 ký tự')
+      if (pwd.next !== pwd.confirm) return setPwdError('Xác nhận mật khẩu không khớp')
+      try {
+        setPwdLoading(true)
+        await api.post('/auth/change-password', { current_password: pwd.current, new_password: pwd.next })
+        setPwdSuccess('Đổi mật khẩu thành công')
+        try {
+          const stored = JSON.parse(localStorage.getItem('user') || '{}')
+          localStorage.setItem('user', JSON.stringify({ ...stored, must_change_password: false }))
+        } catch {}
+        setPwd({ current: '', next: '', confirm: '' })
+      } catch (e) {
+        setPwdError(e.response?.data?.message || 'Đổi mật khẩu thất bại')
+      } finally {
+        setPwdLoading(false)
+      }
+    }
 
   if (!user) {
     return <Typography>Đang tải...</Typography>
@@ -213,6 +251,58 @@ export default function TenantProfile() {
               </form>
             </CardContent>
           </Card>
+
+          {/* Change Password */}
+          <Box sx={{ mt: 3 }}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <LockReset /> Thay đổi mật khẩu
+                </Typography>
+                {pwdSuccess && <Alert severity="success" sx={{ mb: 2 }}>{pwdSuccess}</Alert>}
+                {pwdError && <Alert severity="error" sx={{ mb: 2 }}>{pwdError}</Alert>}
+                <form onSubmit={changePassword}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        type="password"
+                        label="Mật khẩu hiện tại"
+                        value={pwd.current}
+                        onChange={(e) => setPwd({ ...pwd, current: e.target.value })}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        type="password"
+                        label="Mật khẩu mới"
+                        value={pwd.next}
+                        onChange={(e) => setPwd({ ...pwd, next: e.target.value })}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        type="password"
+                        label="Xác nhận mật khẩu mới"
+                        value={pwd.confirm}
+                        onChange={(e) => setPwd({ ...pwd, confirm: e.target.value })}
+                        required
+                      />
+                    </Grid>
+                  </Grid>
+                  <Box sx={{ mt: 2, textAlign: 'right' }}>
+                    <Button type="submit" variant="contained" disabled={pwdLoading}>
+                      {pwdLoading ? 'Đang cập nhật...' : 'Cập nhật mật khẩu'}
+                    </Button>
+                  </Box>
+                </form>
+              </CardContent>
+            </Card>
+          </Box>
 
           {/* Additional Info Cards */}
           <Box sx={{ mt: 3 }}>

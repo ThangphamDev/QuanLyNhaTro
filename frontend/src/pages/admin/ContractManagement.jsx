@@ -65,7 +65,7 @@ export default function ContractManagement() {
   const [detailOpen, setDetailOpen] = useState(false)
   const [selectedContract, setSelectedContract] = useState(null)
 
-  const { register, handleSubmit, reset, control, formState: { errors } } = useForm()
+  const { register, handleSubmit, reset, control, setValue, watch, formState: { errors } } = useForm()
 
   const loadData = async () => {
     try {
@@ -510,10 +510,23 @@ export default function ContractManagement() {
                   render={({ field }) => (
                     <FormControl fullWidth error={!!errors.room_id}>
                       <InputLabel>Phòng *</InputLabel>
-                      <Select {...field} label="Phòng *">
+                      <Select 
+                        {...field} 
+                        label="Phòng *"
+                        onChange={(e) => {
+                          field.onChange(e)
+                          const selected = rooms.find(r => r.id === e.target.value)
+                          if (selected) {
+                            const price = Number(selected.rent_price) || 0
+                            // Auto-fill: rent = room.rent_price; deposit defaults to one month's rent
+                            setValue('rent_price', price, { shouldValidate: true, shouldDirty: true })
+                            setValue('deposit_amount', price, { shouldValidate: true, shouldDirty: true })
+                          }
+                        }}
+                      >
                         {rooms.map((room) => (
                           <MenuItem key={room.id} value={room.id}>
-                            {room.room_number} - {room.property?.name}
+                            {room.room_number} - {room.property?.name} ({new Intl.NumberFormat('vi-VN').format(room.rent_price)} VND)
                           </MenuItem>
                         ))}
                       </Select>
@@ -603,31 +616,51 @@ export default function ContractManagement() {
               </Grid>
               
               <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Tiền thuê *"
-                  type="number"
-                  {...register('rent_price', { required: 'Tiền thuê là bắt buộc', min: 0 })}
-                  error={!!errors.rent_price}
-                  helperText={errors.rent_price?.message}
-                  InputProps={{
-                    endAdornment: <Typography variant="body2" color="text.secondary">VND</Typography>
-                  }}
-                />
+                <Box>
+                  <TextField
+                    fullWidth
+                    label="Tiền thuê *"
+                    type="number"
+                    {...register('rent_price', { required: 'Tiền thuê là bắt buộc', min: 0 })}
+                    error={!!errors.rent_price}
+                    helperText={errors.rent_price?.message}
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      endAdornment: (
+                        <Box sx={{ px: 1, bgcolor: 'success.50', borderRadius: 1 }}>
+                          <Typography variant="body2" color="success.main" fontWeight="bold">VND</Typography>
+                        </Box>
+                      )
+                    }}
+                  />
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                    {formatCurrency(Number(watch('rent_price') || 0))}
+                  </Typography>
+                </Box>
               </Grid>
               
               <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Tiền cọc"
-                  type="number"
-                  {...register('deposit_amount', { min: 0 })}
-                  error={!!errors.deposit_amount}
-                  helperText={errors.deposit_amount?.message}
-                  InputProps={{
-                    endAdornment: <Typography variant="body2" color="text.secondary">VND</Typography>
-                  }}
-                />
+                <Box>
+                  <TextField
+                    fullWidth
+                    label="Tiền cọc"
+                    type="number"
+                    {...register('deposit_amount', { min: 0 })}
+                    error={!!errors.deposit_amount}
+                    helperText={errors.deposit_amount?.message}
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      endAdornment: (
+                        <Box sx={{ px: 1, bgcolor: 'info.50', borderRadius: 1 }}>
+                          <Typography variant="body2" color="info.main" fontWeight="bold">VND</Typography>
+                        </Box>
+                      )
+                    }}
+                  />
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                    {formatCurrency(Number(watch('deposit_amount') || 0))}
+                  </Typography>
+                </Box>
               </Grid>
               
               <Grid item xs={12} sm={6}>

@@ -321,10 +321,12 @@ export default function RoomDetail() {
                 <Box
                   sx={{
                     width: '100%',
-                    height: { xs: 280, sm: 380, md: 480 },
+                    height: 500,
+                    maxHeight: 500,
                     overflow: 'hidden',
                     cursor: 'pointer',
                     position: 'relative',
+                    borderRadius: 2,
                     '&:hover .image-overlay': { opacity: 1 }
                   }}
                   onClick={() => {
@@ -469,7 +471,7 @@ export default function RoomDetail() {
             ) : (
               <Box
                 sx={{
-                  height: { xs: 280, sm: 380, md: 480 },
+                  height: 500,
                   bgcolor: 'grey.100',
                   display: 'flex',
                   alignItems: 'center',
@@ -498,7 +500,7 @@ export default function RoomDetail() {
                       }}
                       sx={{
                         width: '100%',
-                        height: { xs: 60, sm: 80 },
+                        height: 88,
                         borderRadius: 2,
                         overflow: 'hidden',
                         cursor: 'pointer',

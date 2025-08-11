@@ -1,10 +1,40 @@
 import { Router } from 'express';
 import { authenticateJWT, authorizeRoles } from '../middleware/auth.js';
-import { Contract, Room, Property, Invoice, InvoiceItem, Report } from '../models/index.js';
+import { Contract, Room, Property, Invoice, InvoiceItem, Report, User } from '../models/index.js';
 import { Op } from 'sequelize';
 
 const router = Router();
 router.use(authenticateJWT, authorizeRoles('tenant'));
+
+// Profile: get current user
+router.get('/profile', async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ['id', 'full_name', 'email', 'phone_number', 'avatar_url', 'is_active', 'createdAt']
+    });
+    if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    res.json(user);
+  } catch (e) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Profile: update name and phone
+router.put('/profile', async (req, res) => {
+  try {
+    const { full_name, phone_number, avatar_url } = req.body;
+    const user = await User.findByPk(req.user.id);
+    if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    await user.update({
+      ...(full_name !== undefined ? { full_name } : {}),
+      ...(phone_number !== undefined ? { phone_number } : {}),
+      ...(avatar_url !== undefined ? { avatar_url } : {}),
+    });
+    res.json({ id: user.id, full_name: user.full_name, email: user.email, phone_number: user.phone_number, avatar_url: user.avatar_url, is_active: user.is_active, createdAt: user.createdAt });
+  } catch (e) {
+    res.status(400).json({ message: 'Cập nhật hồ sơ thất bại' });
+  }
+});
 
 // Dashboard: phòng hiện tại, hóa đơn gần nhất, thông báo (đơn giản hóa)
 router.get('/dashboard', async (req, res) => {
