@@ -66,6 +66,11 @@ export default function RoomManagement() {
   const [roomAssets, setRoomAssets] = useState([])
   const [currentTab, setCurrentTab] = useState(0)
   const [availableAssets, setAvailableAssets] = useState([])
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [roomDetail, setRoomDetail] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [roomContracts, setRoomContracts] = useState([])
+  const [detailImageIndex, setDetailImageIndex] = useState(0)
 
   const { register, handleSubmit, reset, control, formState: { errors } } = useForm()
 
@@ -179,6 +184,27 @@ export default function RoomManagement() {
       } catch (error) {
         alert('Xóa thất bại')
       }
+    }
+  }
+
+  const openDetail = async (room) => {
+    setDetailLoading(true)
+    setDetailImageIndex(0)
+    try {
+      const [roomRes, contractsRes] = await Promise.all([
+        api.get(`/admin/rooms/${room.id}`),
+        api.get('/admin/contracts')
+      ])
+      setRoomDetail(roomRes.data)
+      setRoomContracts((contractsRes.data || []).filter(c => c.room_id === room.id))
+      setDetailOpen(true)
+    } catch (e) {
+      // fallback minimal
+      setRoomDetail(room)
+      setRoomContracts([])
+      setDetailOpen(true)
+    } finally {
+      setDetailLoading(false)
     }
   }
 
@@ -370,7 +396,14 @@ export default function RoomManagement() {
                 </TableCell>
                 <TableCell>{getStatusChip(room.status)}</TableCell>
                 <TableCell>
-                  <IconButton
+                    <IconButton
+                      color="primary"
+                      onClick={() => openDetail(room)}
+                      sx={{ mr: 1 }}
+                    >
+                      <Info />
+                    </IconButton>
+                    <IconButton
                     color="primary"
                     onClick={() => handleEdit(room)}
                   >
@@ -1556,6 +1589,124 @@ export default function RoomManagement() {
             </Button>
           </DialogActions>
         </form>
+      </Dialog>
+
+      {/* Room Detail Dialog */}
+      <Dialog
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Info /> Chi tiết phòng {roomDetail?.room_number}
+        </DialogTitle>
+        <DialogContent dividers sx={{ bgcolor: 'grey.50' }}>
+          {detailLoading ? (
+            <Alert severity="info">Đang tải chi tiết phòng...</Alert>
+          ) : roomDetail ? (
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: 'white' }}>
+                  <Box sx={{ position: 'relative', height: 320, borderRadius: 2, overflow: 'hidden', mb: 1 }}>
+                    {roomDetail.room_images?.length ? (
+                      <img
+                        src={`http://localhost:4000${roomDetail.room_images[detailImageIndex]?.image_url}`}
+                        alt="room"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <Box sx={{ width: '100%', height: '100%', bgcolor: 'grey.200', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <RoomIcon sx={{ fontSize: 64, color: 'grey.400' }} />
+                      </Box>
+                    )}
+                    <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+                      {getStatusChip(roomDetail.status)}
+                    </Box>
+                  </Box>
+                  {roomDetail.room_images?.length > 1 && (
+                    <Grid container spacing={1}>
+                      {roomDetail.room_images.map((img, idx) => (
+                        <Grid item xs={3} key={img.id || idx}>
+                          <Box
+                            onClick={() => setDetailImageIndex(idx)}
+                            sx={{
+                              height: 64,
+                              borderRadius: 1,
+                              overflow: 'hidden',
+                              border: idx === detailImageIndex ? '2px solid' : '1px solid',
+                              borderColor: idx === detailImageIndex ? 'primary.main' : 'grey.200',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <img src={`http://localhost:4000${img.image_url}`} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </Box>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                </Paper>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: 'white' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>Thông tin cơ bản</Typography>
+                  <Grid container spacing={1}>
+                    <Grid item xs={6}><Typography variant="body2" color="text.secondary">Khu trọ</Typography><Typography variant="body1" sx={{ fontWeight: 600 }}>{roomDetail.property?.name}</Typography></Grid>
+                    <Grid item xs={6}><Typography variant="body2" color="text.secondary">Số phòng</Typography><Typography variant="body1" sx={{ fontWeight: 600 }}>{roomDetail.room_number}</Typography></Grid>
+                    <Grid item xs={6}><Typography variant="body2" color="text.secondary">Diện tích</Typography><Typography variant="body1" sx={{ fontWeight: 600 }}>{roomDetail.area} m²</Typography></Grid>
+                    <Grid item xs={6}><Typography variant="body2" color="text.secondary">Giá thuê</Typography><Typography variant="body1" sx={{ fontWeight: 600 }}>{new Intl.NumberFormat('vi-VN').format(roomDetail.rent_price)} VND</Typography></Grid>
+                    <Grid item xs={12}>{roomDetail.description && (<Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{roomDetail.description}</Typography>)}</Grid>
+                  </Grid>
+                </Paper>
+
+                <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: 'white', mt: 2 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>Người thuê / Hợp đồng</Typography>
+                  {roomContracts.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">Chưa có hợp đồng</Typography>
+                  ) : (
+                    <Stack spacing={1}>
+                      {roomContracts.map(c => (
+                        <Box key={c.id} sx={{ p: 1.5, border: '1px solid', borderColor: 'grey.200', borderRadius: 1 }}>
+                          <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Typography variant="body2">HĐ #{c.id} • {c.tenant?.full_name} • {c.tenant?.phone_number}</Typography>
+                            <Chip size="small" label={c.status === 'active' ? 'Đang hiệu lực' : c.status === 'expired' ? 'Hết hạn' : 'Đã chấm dứt'} color={c.status === 'active' ? 'success' : c.status === 'expired' ? 'error' : 'default'} />
+                          </Stack>
+                          <Typography variant="caption" color="text.secondary">Từ {new Date(c.start_date).toLocaleDateString('vi-VN')} {c.end_date ? `đến ${new Date(c.end_date).toLocaleDateString('vi-VN')}` : ''}</Typography>
+                        </Box>
+                      ))}
+                    </Stack>
+                  )}
+                </Paper>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: 'white' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>Nội thất/Tài sản trong phòng</Typography>
+                  {roomDetail.assets?.length ? (
+                    <Grid container spacing={1}>
+                      {roomDetail.assets.map(a => (
+                        <Grid item xs={12} sm={6} md={4} key={a.id}>
+                          <Box sx={{ p: 1.5, border: '1px solid', borderColor: 'grey.200', borderRadius: 1 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{a.name}</Typography>
+                            <Typography variant="caption" color="text.secondary">{a.asset_type?.name || 'Nội thất'} • {a.serial_number || 'S/N -'}</Typography>
+                          </Box>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">Chưa có tài sản liên kết</Typography>
+                  )}
+                </Paper>
+              </Grid>
+            </Grid>
+          ) : (
+            <Alert severity="warning">Không tải được chi tiết phòng</Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDetailOpen(false)} variant="outlined">Đóng</Button>
+        </DialogActions>
       </Dialog>
     </Box>
   )

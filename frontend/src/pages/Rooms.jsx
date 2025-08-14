@@ -54,7 +54,7 @@ export default function Rooms() {
   const [sortBy, setSortBy] = useState('newest')
   const [viewMode, setViewMode] = useState('grid') // grid | list
   const [page, setPage] = useState(1)
-  const [perPage, setPerPage] = useState(9)
+  const [perPage, setPerPage] = useState(12)
 
   const load = () => {
     setSearching(true)
@@ -413,8 +413,8 @@ export default function Rooms() {
         {/* Enhanced Loading Skeleton */}
         {loading ? (
           <Grid container spacing={4}>
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-              <Grid item xs={12} sm={6} md={4} key={item}>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+              <Grid item xs={12} sm={6} md={3} key={item}>
                 <Card sx={{ borderRadius: 3, overflow: 'hidden' }}>
                   <Skeleton variant="rectangular" width="100%" height={240} />
                   <CardContent sx={{ p: 3 }}>
@@ -434,9 +434,9 @@ export default function Rooms() {
         ) : (
           <>
             {viewMode === 'grid' ? (
-              <Grid container spacing={4}>
+        <Grid container spacing={4}>
                 {pagedRooms.map((room) => (
-                  <Grid item xs={12} sm={6} md={4} key={room.id}>
+          <Grid item xs={12} sm={6} md={3} key={room.id}>
                     <Card 
                       sx={{ 
                         height: '100%',

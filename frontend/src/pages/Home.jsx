@@ -39,32 +39,31 @@ export default function Home() {
     <Box 
       sx={{ 
         width: '100%',
-        bgcolor: 'grey.50', // Nền sáng tổng thể để tạo sự tương phản
+        bgcolor: 'linear-gradient(180deg, #e3f2fd 0%, #f5faff 60%)',
         minHeight: '100vh'
       }}
     >
       {/* Modern Hero Section with Background Image */}
       <Box
         sx={{
-          backgroundImage: 'url("https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80")', // Hình ảnh phòng trọ hiện đại
+          mt: '5px',
+          backgroundImage: 'url("https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundAttachment: 'fixed', // Parallax effect nhẹ
+          backgroundAttachment: 'fixed',
           color: 'white',
-          py: { xs: 8, md: 12 },
-          mb: 8,
+          py: { xs: 8, md: 10 },
+          mb: 6,
           position: 'relative',
           overflow: 'hidden',
-          borderRadius: { xs: 2, md: 3 }, // Thêm border radius mềm mại
-          mx: { xs: 2, sm: 3, md: 4 }, // Margin để tạo breathing room
+          borderRadius: 0,
+          mx: 0,
+          boxShadow: '0 16px 48px -12px rgba(0,0,0,0.35)',
           '&::before': {
             content: '""',
             position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.8) 100%)', // Overlay gradient mềm mại hơn
+            inset: 0,
+            background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.6) 100%)',
             pointerEvents: 'none'
           }
         }}
@@ -91,7 +90,7 @@ export default function Home() {
                 }
               }}
             >
-              <HomeIcon sx={{ fontSize: 40 }} />
+              <HomeIcon sx={{ fontSize: 40, color: '#fff' }} />
             </Box>
 
             {/* Modern Typography */}
@@ -100,42 +99,30 @@ export default function Home() {
               component="h1" 
               gutterBottom 
               sx={{ 
-                fontWeight: 300, // Lighter weight cho look hiện đại
-                fontSize: { xs: '2.5rem', md: '3.5rem' },
+                fontWeight: 700,
+                fontSize: { xs: '2.4rem', md: '3.4rem' },
                 letterSpacing: '-0.02em',
-                mb: 2
+                mb: 1,
+                background: 'linear-gradient(90deg,#bbdefb 0%,#e3f2fd 40%,#fff 70%)',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent'
               }}
             >
-              Tìm Phòng Trọ
-            </Typography>
-            
-            <Typography 
-              variant="h1" 
-              component="span" 
-              sx={{ 
-                fontWeight: 700, // Bold cho từ nhấn mạnh
-                fontSize: { xs: '2.5rem', md: '3.5rem' },
-                letterSpacing: '-0.02em',
-                display: 'block',
-                mb: 4
-              }}
-            >
-              Lý Tưởng
+              Tìm Phòng Trọ Lý Tưởng
             </Typography>
 
             <Typography 
               variant="h6" 
               sx={{ 
                 mb: 6, 
-                opacity: 0.8,
-                maxWidth: '600px',
+                opacity: 0.92,
+                maxWidth: '640px',
                 mx: 'auto',
-                fontWeight: 300,
+                fontWeight: 400,
                 lineHeight: 1.6
               }}
             >
-              Hệ thống quản lý nhà trọ hiện đại với giao diện thân thiện, 
-              đảm bảo an toàn và minh bạch trong mọi giao dịch
+              Hệ thống quản lý nhà trọ hiện đại với giao diện thân thiện – minh bạch, an toàn và tối ưu trải nghiệm dành cho chủ trọ & người thuê.
             </Typography>
 
             {/* Soft CTA Button với breathing space */}
@@ -146,22 +133,21 @@ export default function Home() {
               size="large"
               endIcon={<ArrowForward />}
               sx={{
-                bgcolor: 'rgba(255,255,255,0.95)', // Slightly transparent cho soft feel
-                color: 'black',
+                background: 'linear-gradient(45deg,#1976d2 0%, #2196f3 40%, #42a5f5 100%)',
+                color: 'white',
                 px: 6,
-                py: 2.5,
-                borderRadius: 3, // Mềm mại hơn từ sharp corners
-                fontWeight: 600,
-                fontSize: '1.1rem',
+                py: 2.2,
+                borderRadius: 4,
+                fontWeight: 700,
+                fontSize: '1.05rem',
                 textTransform: 'none',
-                backdropFilter: 'blur(10px)', // Glass effect tinh tế
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)', // Shadow mềm mại
+                boxShadow: '0 8px 32px rgba(25,118,210,0.45)',
                 '&:hover': { 
-                  bgcolor: 'white',
-                  transform: 'translateY(-3px)', // Giảm từ -2px xuống -3px cho smooth hơn
-                  boxShadow: '0 8px 30px rgba(0,0,0,0.15)' // Shadow đậm hơn khi hover
+                  background: 'linear-gradient(45deg,#1565c0 0%, #1976d2 50%, #2196f3 100%)',
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 14px 40px rgba(25,118,210,0.55)'
                 },
-                transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)' // Easing function mềm mại hơn
+                transition: 'all 0.35s ease'
               }}
             >
               Khám Phá Ngay
@@ -175,14 +161,17 @@ export default function Home() {
         {/* Section Header */}
         <Box sx={{ mb: 6, textAlign: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-            <Star sx={{ fontSize: 28, color: 'black', mr: 1 }} />
+            <Star sx={{ fontSize: 30, color: 'primary.main', mr: 1 }} />
             <Typography 
               variant="h3" 
               component="h2" 
               sx={{ 
-                fontWeight: 700, 
-                color: 'black',
-                fontSize: { xs: '1.8rem', md: '2.5rem' }
+                fontWeight: 800, 
+                background: 'linear-gradient(90deg,#1976d2,#42a5f5)',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+                fontSize: { xs: '1.9rem', md: '2.6rem' },
+                letterSpacing: '-0.5px'
               }}
             >
               Phòng Nổi Bật
@@ -191,9 +180,9 @@ export default function Home() {
           
           <Divider 
             sx={{ 
-              width: 80, 
-              height: 3, 
-              bgcolor: 'black', 
+              width: 100, 
+              height: 4, 
+              bgcolor: 'primary.main', 
               mx: 'auto',
               borderRadius: 3 // Thêm border radius cho soft feel
             }} 
@@ -224,18 +213,27 @@ export default function Home() {
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    borderRadius: 3, // Thay từ 0 sang 3 cho soft corners
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.06)', // Shadow mềm hơn
-                    border: '1px solid rgba(0,0,0,0.08)', // Border opacity thấp hơn cho soft feel
+                    borderRadius: 4,
+                    boxShadow: '0 8px 28px -6px rgba(25,118,210,0.25)',
+                    border: '1px solid rgba(25,118,210,0.15)',
                     overflow: 'hidden',
-                    backgroundColor: 'white',
-                    transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)', // Easing mềm mại hơn
+                    background: 'linear-gradient(180deg,#ffffff 0%,#f6fbff 100%)',
+                    backdropFilter: 'blur(4px)',
+                    transition: 'all .4s cubic-bezier(.4,0,.2,1)',
+                    position: 'relative',
+                    '&:before': {
+                      content: '""',
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'linear-gradient(120deg,rgba(25,118,210,0.08),rgba(66,165,245,0.05) 40%,rgba(255,255,255,0) 70%)',
+                      pointerEvents: 'none'
+                    },
                     '&:hover': {
-                      transform: 'translateY(-6px) scale(1.01)', // Scale nhẹ thêm dimension
-                      boxShadow: '0 20px 40px rgba(0,0,0,0.08)', // Shadow spread rộng hơn nhưng opacity thấp
-                      borderColor: 'rgba(0,0,0,0.12)',
+                      transform: 'translateY(-8px)',
+                      boxShadow: '0 18px 50px -12px rgba(25,118,210,0.35)',
+                      borderColor: 'rgba(25,118,210,0.35)',
                       '& .room-image': {
-                        transform: 'scale(1.03)' // Giảm scale để không quá aggressive
+                        transform: 'scale(1.05)'
                       }
                     }
                   }}
@@ -276,22 +274,22 @@ export default function Home() {
                     
                     {/* Status Chip với style mềm mại */}
                     <Chip
-                      label="Còn Trống"
+                      label={room.status === 'available' ? 'Còn trống' : 'Đã thuê'}
                       sx={{ 
                         position: 'absolute', 
                         top: 16, 
                         right: 16,
-                        bgcolor: 'rgba(0,0,0,0.8)', // Không đen thuần túy, có transparency
+                        background: room.status === 'available' ? 'linear-gradient(90deg,#1976d2,#42a5f5)' : 'linear-gradient(90deg,#757575,#9e9e9e)',
                         color: 'white',
-                        borderRadius: 2, // Thêm border radius thay vì 0
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        backdropFilter: 'blur(10px)', // Glass morphism effect
-                        border: '1px solid rgba(255,255,255,0.1)', // Subtle border
+                        borderRadius: 2,
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        letterSpacing: '.5px',
+                        textTransform: 'uppercase',
+                        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
                         '&:hover': {
-                          bgcolor: 'rgba(0,0,0,0.9)',
-                          transform: 'scale(1.05)', // Gentle scale effect
-                          transition: 'all 0.2s ease'
+                          transform: 'translateY(-2px) scale(1.04)',
+                          boxShadow: '0 6px 22px rgba(0,0,0,0.3)'
                         }
                       }}
                     />
@@ -303,9 +301,11 @@ export default function Home() {
                       component="h3" 
                       gutterBottom 
                       sx={{ 
-                        fontWeight: 600, 
-                        color: 'black',
-                        mb: 2
+                        fontWeight: 700, 
+                        mb: 2,
+                        background: 'linear-gradient(90deg,#1976d2,#42a5f5)',
+                        WebkitBackgroundClip: 'text',
+                        color: 'transparent'
                       }}
                     >
                       Phòng {room.room_number}
@@ -313,31 +313,31 @@ export default function Home() {
                     
                     <Box sx={{ mb: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                        <LocationOn sx={{ fontSize: 18, mr: 1, color: 'grey.600' }} />
-                        <Typography variant="body1" sx={{ color: 'grey.700', fontWeight: 500 }}>
+                        <LocationOn sx={{ fontSize: 18, mr: 1, color: 'primary.main' }} />
+                        <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 500 }}>
                           {room.property?.name}
                         </Typography>
                       </Box>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                        <AttachMoney sx={{ fontSize: 18, mr: 1, color: 'grey.600' }} />
+            <AttachMoney sx={{ fontSize: 18, mr: 1, color: 'primary.main' }} />
                         <Typography 
                           variant="h6" 
                           sx={{ 
-                            fontWeight: 700, 
-                            color: 'black'
+              fontWeight: 800, 
+              color: 'primary.main'
                           }}
                         >
                           {new Intl.NumberFormat('vi-VN').format(room.rent_price)} VND
                         </Typography>
-                        <Typography variant="body2" sx={{ color: 'grey.500', ml: 1 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', ml: 1 }}>
                           /tháng
                         </Typography>
                       </Box>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Straighten sx={{ fontSize: 18, mr: 1, color: 'grey.600' }} />
-                        <Typography variant="body1" sx={{ color: 'grey.700' }}>
+                        <Straighten sx={{ fontSize: 18, mr: 1, color: 'primary.main' }} />
+                        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                           {room.area} m²
                         </Typography>
                       </Box>
@@ -347,8 +347,8 @@ export default function Home() {
                       <Typography 
                         variant="body2" 
                         sx={{ 
-                          color: 'grey.600',
-                          lineHeight: 1.6,
+                          color: 'text.secondary',
+                          lineHeight: 1.55,
                           display: '-webkit-box',
                           WebkitLineClamp: 3,
                           WebkitBoxOrient: 'vertical',
@@ -367,19 +367,20 @@ export default function Home() {
                       variant="contained"
                       fullWidth
                       sx={{
-                        bgcolor: 'rgba(0,0,0,0.9)', // Không đen thuần túy, có một chút transparency
+                        background: 'linear-gradient(90deg,#1976d2,#42a5f5)',
                         color: 'white',
-                        borderRadius: 2, // Thêm border radius thay vì 0
-                        py: 1.5,
-                        fontWeight: 600,
+                        borderRadius: 3,
+                        py: 1.4,
+                        fontWeight: 700,
                         textTransform: 'none',
-                        fontSize: '1rem',
+                        fontSize: '0.95rem',
+                        boxShadow: '0 6px 22px rgba(25,118,210,0.35)',
                         '&:hover': {
-                          bgcolor: 'black',
-                          transform: 'translateY(-1px)', // Giữ nguyên gentle lift
-                          boxShadow: '0 6px 20px rgba(0,0,0,0.15)' // Thêm shadow khi hover
+                          background: 'linear-gradient(90deg,#1565c0,#1e88e5)',
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 12px 30px rgba(25,118,210,0.45)'
                         },
-                        transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)' // Easing mềm mại
+                        transition: 'all .3s ease'
                       }}
                     >
                       Xem Chi Tiết
