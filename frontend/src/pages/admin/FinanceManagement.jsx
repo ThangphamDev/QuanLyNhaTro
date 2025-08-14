@@ -83,13 +83,29 @@ export default function FinanceManagement() {
     setSuccess('')
     setActiveTab(0)
     reset({
+      contract_id: '',
       status: 'pending',
       billing_month: new Date().getMonth() + 1,
       billing_year: new Date().getFullYear(),
+      issue_date: new Date().toISOString().split('T')[0],
+      due_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0],
+      electricity_old: 0,
+      electricity_new: 0,
       electricity_rate: 4000,
+      water_old: 0,
+      water_new: 0,
       water_rate: 15000
     })
     setDialogOpen(true)
+  }
+
+  // Kiểm tra xem hợp đồng đã có hóa đơn chưa thanh toán chưa
+  const checkContractHasUnpaidInvoices = (contractId) => {
+    if (!contractId) return false;
+    return invoices.some(invoice => 
+      invoice.contract_id === contractId && 
+      invoice.status !== 'paid'
+    );
   }
 
   // Lấy chỉ số cũ khi chọn hợp đồng
@@ -233,7 +249,14 @@ export default function FinanceManagement() {
       loadData()
       setTimeout(() => setSuccess(''), 3000)
     } catch (error) {
-      setError(error.response?.data?.message || 'Có lỗi xảy ra')
+      const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra';
+      setError(errorMessage);
+      setTimeout(() => setError(''), 5000);
+      
+      // Nếu lỗi về hóa đơn chưa thanh toán, reload data để cập nhật danh sách
+      if (errorMessage.includes('hóa đơn chưa thanh toán')) {
+        loadData();
+      }
     }
   }
 
@@ -539,11 +562,18 @@ export default function FinanceManagement() {
                            handleContractChange(e.target.value);
                          }}
                        >
-                         {contracts.map((contract) => (
-                           <MenuItem key={contract.id} value={contract.id}>
-                             HĐ #{contract.id} - {contract.room?.room_number}
+                         {contracts
+                           .filter(contract => !checkContractHasUnpaidInvoices(contract.id))
+                           .map((contract) => (
+                             <MenuItem key={contract.id} value={contract.id}>
+                               HĐ #{contract.id} - {contract.room?.room_number}
+                             </MenuItem>
+                           ))}
+                         {contracts.filter(contract => !checkContractHasUnpaidInvoices(contract.id)).length === 0 && (
+                           <MenuItem disabled>
+                             Không có hợp đồng khả dụng (tất cả đều có hóa đơn chưa thanh toán)
                            </MenuItem>
-                         ))}
+                         )}
                        </Select>
                        {errors.contract_id && (
                          <Typography variant="caption" color="error">

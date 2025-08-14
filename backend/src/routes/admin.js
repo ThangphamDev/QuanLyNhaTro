@@ -639,6 +639,20 @@ router.post('/invoices', async (req, res) => {
       return res.status(400).json({ message: 'Thiếu hoặc sai dữ liệu: contract_id, total_amount, billing_month, billing_year' });
     }
 
+    // Kiểm tra xem hợp đồng đã có hóa đơn chưa thanh toán chưa
+    const existingUnpaidInvoice = await Invoice.findOne({
+      where: {
+        contract_id: contractId,
+        status: { [Op.ne]: 'paid' } // Không phải 'paid'
+      }
+    });
+
+    if (existingUnpaidInvoice) {
+      return res.status(400).json({ 
+        message: 'Hợp đồng này đã có hóa đơn chưa thanh toán. Vui lòng thanh toán hóa đơn trước khi tạo hóa đơn mới.' 
+      });
+    }
+
     // Tính toán chi phí điện nước
     const electricityOld = Number(electricity_old) || 0;
     const electricityNew = Number(electricity_new) || 0;
