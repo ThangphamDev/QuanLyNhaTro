@@ -156,57 +156,57 @@ export default function Home() {
         </Container>
       </Box>
 
-      {/* Featured Rooms Section */}
-      <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-        {/* Section Header */}
-        <Box sx={{ mb: 6, textAlign: 'center' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-            <Star sx={{ fontSize: 30, color: 'primary.main', mr: 1 }} />
-            <Typography 
-              variant="h3" 
-              component="h2" 
-              sx={{ 
-                fontWeight: 800, 
-                background: 'linear-gradient(90deg,#1976d2,#42a5f5)',
-                WebkitBackgroundClip: 'text',
-                color: 'transparent',
-                fontSize: { xs: '1.9rem', md: '2.6rem' },
-                letterSpacing: '-0.5px'
-              }}
-            >
-              Phòng Nổi Bật
-            </Typography>
-          </Box>
-          
-          <Divider 
-            sx={{ 
-              width: 100, 
-              height: 4, 
-              bgcolor: 'primary.main', 
-              mx: 'auto',
-              borderRadius: 3 // Thêm border radius cho soft feel
-            }} 
-          />
-        </Box>
+             {/* Featured Rooms Section */}
+       <Container maxWidth="xl" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+         {/* Section Header */}
+         <Box sx={{ mb: 6, textAlign: 'center', width: '100%' }}>
+           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+             <Star sx={{ fontSize: 30, color: 'primary.main', mr: 1 }} />
+             <Typography 
+               variant="h3" 
+               component="h2" 
+               sx={{ 
+                 fontWeight: 800, 
+                 background: 'linear-gradient(90deg,#1976d2,#42a5f5)',
+                 WebkitBackgroundClip: 'text',
+                 color: 'transparent',
+                 fontSize: { xs: '1.9rem', md: '2.6rem' },
+                 letterSpacing: '-0.5px'
+               }}
+             >
+               Phòng Nổi Bật
+             </Typography>
+           </Box>
+           
+           <Divider 
+             sx={{ 
+               width: 100, 
+               height: 4, 
+               bgcolor: 'primary.main', 
+               mx: 'auto',
+               borderRadius: 3 // Thêm border radius cho soft feel
+             }} 
+           />
+         </Box>
 
-        {loading ? (
-          <Grid container spacing={4}>
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-              <Grid item xs={12} sm={6} lg={4} key={item}>
-                <Card sx={{ borderRadius: 3, boxShadow: 'none', overflow: 'hidden' }}> {/* Thêm border radius cho loading cards */}
-                  <Skeleton variant="rectangular" width="100%" height={280} />
-                  <CardContent>
-                    <Skeleton variant="text" height={32} />
-                    <Skeleton variant="text" height={24} />
-                    <Skeleton variant="text" height={24} />
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        ) : (
-          <Grid container spacing={4}>
-            {rooms.map((room) => (
+                 {loading ? (
+           <Grid container spacing={4} sx={{ justifyContent: 'center' }}>
+             {[1, 2, 3].map((item) => (
+               <Grid item xs={12} sm={6} lg={4} key={item}>
+                 <Card sx={{ borderRadius: 3, boxShadow: 'none', overflow: 'hidden' }}> {/* Thêm border radius cho loading cards */}
+                   <Skeleton variant="rectangular" width="100%" height={280} />
+                   <CardContent>
+                     <Skeleton variant="text" height={32} />
+                     <Skeleton variant="text" height={24} />
+                     <Skeleton variant="text" height={24} />
+                   </CardContent>
+                 </Card>
+               </Grid>
+             ))}
+           </Grid>
+         ) : (
+           <Grid container spacing={4} sx={{ justifyContent: 'center' }}>
+             {rooms.slice(0, 3).map((room) => (
               <Grid item xs={12} sm={6} lg={4} key={room.id}>
                 <Card 
                   sx={{ 

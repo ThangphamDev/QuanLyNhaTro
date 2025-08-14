@@ -116,19 +116,20 @@ export default function Rooms() {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
       {/* Hero Section */}
-      <Box
-        sx={{
-          backgroundImage: 'url("https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          color: 'white',
-          py: { xs: 6, md: 8 },
-          position: 'relative',
-          overflow: 'hidden',
-          minHeight: '60vh'
-        }}
-      >
+             <Box
+         sx={{
+           mt: '-27px',
+           backgroundImage: 'url("https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")',
+           backgroundSize: 'cover',
+           backgroundPosition: 'center',
+           backgroundRepeat: 'no-repeat',
+           color: 'white',
+           py: { xs: 8, md: 10 },
+           position: 'relative',
+           overflow: 'hidden',
+           minHeight: '60vh'
+         }}
+       >
         <Box
           sx={{
             position: 'absolute',
@@ -204,7 +205,8 @@ export default function Rooms() {
             mb: 4, 
             borderRadius: 4,
             background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.1)'
+            boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
+            maxWidth: '100%'
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
@@ -567,22 +569,24 @@ export default function Rooms() {
                           />
                         </Box>
                         
-                        {room.description && (
-                          <Typography 
-                            variant="body2" 
-                            color="text.secondary" 
-                            sx={{ 
-                              mt: 1,
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                              lineHeight: 1.4
-                            }}
-                          >
-                            {room.description}
-                          </Typography>
-                        )}
+                        <Box sx={{ mt: 1, minHeight: 22 }}>
+                          {room.description && (
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                lineHeight: 1.4,
+                                width: '100%'
+                              }}
+                              title={room.description}
+                            >
+                              {room.description.length > 20 ? room.description.slice(0, 20) + '…' : room.description}
+                            </Typography>
+                          )}
+                        </Box>
                       </CardContent>
                       
                       <CardActions sx={{ p: 3, pt: 0 }}>
@@ -649,11 +653,18 @@ export default function Rooms() {
                         <Chip label={`📐 ${room.area} m²`} size="small" variant="outlined" color="primary" />
                         <Chip label={`👥 ${room.max_tenants} người`} size="small" variant="outlined" color="secondary" />
                       </Stack>
-                      {room.description && (
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                          {room.description.length > 140 ? room.description.substring(0, 140) + '...' : room.description}
-                        </Typography>
-                      )}
+                      <Box sx={{ mt: 2, minHeight: 22 }}>
+                        {room.description && (
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}
+                            title={room.description}
+                          >
+                            {room.description.length > 20 ? room.description.slice(0, 20) + '…' : room.description}
+                          </Typography>
+                        )}
+                      </Box>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <Button 
@@ -675,7 +686,7 @@ export default function Rooms() {
             )}
 
             {/* Enhanced Pagination */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8, mb: 4 }}>
               <Pagination 
                 color="primary" 
                 count={totalPages} 

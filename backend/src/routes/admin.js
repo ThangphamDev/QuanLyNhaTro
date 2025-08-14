@@ -605,7 +605,8 @@ router.delete('/contracts/:id', async (req, res) => {
 router.get('/invoices', async (_req, res) => {
   const invoices = await Invoice.findAll({
     include: [
-      { model: Contract, include: [{ model: Room, include: [Property] }, { model: User, as: 'tenant' }] }
+      { model: Contract, include: [{ model: Room, include: [Property] }, { model: User, as: 'tenant' }] },
+      { model: InvoiceItem, as: 'invoice_items' }
     ]
   });
   res.json(invoices);
@@ -621,6 +622,12 @@ router.post('/invoices', async (req, res) => {
       status,
       issue_date,
       due_date,
+      electricity_old,
+      electricity_new,
+      electricity_rate,
+      water_old,
+      water_new,
+      water_rate,
     } = req.body;
 
     const contractId = toIntOrNull(contract_id);
@@ -632,17 +639,113 @@ router.post('/invoices', async (req, res) => {
       return res.status(400).json({ message: 'Thiếu hoặc sai dữ liệu: contract_id, total_amount, billing_month, billing_year' });
     }
 
+    // Tính toán chi phí điện nước
+    const electricityOld = Number(electricity_old) || 0;
+    const electricityNew = Number(electricity_new) || 0;
+    const electricityRate = Number(electricity_rate) || 4000;
+    const electricityCost = Math.max(0, (electricityNew - electricityOld) * electricityRate);
+
+    const waterOld = Number(water_old) || 0;
+    const waterNew = Number(water_new) || 0;
+    const waterRate = Number(water_rate) || 15000;
+    const waterCost = Math.max(0, (waterNew - waterOld) * waterRate);
+
+    // Lấy thông tin hợp đồng để tính tiền phòng
+    const contract = await Contract.findByPk(contractId, {
+      include: [{ model: Room }]
+    });
+    
+    if (!contract) {
+      return res.status(400).json({ message: 'Không tìm thấy hợp đồng' });
+    }
+
+    const roomFee = Number(contract.rent_price) || 0;
+    const calculatedTotal = roomFee + electricityCost + waterCost;
+
     const payload = {
       contract_id: contractId,
-      total_amount: amount,
+      total_amount: calculatedTotal,
       billing_month: month,
       billing_year: year,
       status: status || 'pending',
       issue_date: issue_date ? toDateOnly(issue_date) : toDateOnly(new Date()),
       due_date: due_date ? toDateOnly(due_date) : toDateOnly(endOfMonth(year, month)),
+      // Lưu thông tin điện nước vào invoice_items
     };
 
     const created = await Invoice.create(payload);
+    console.log('Invoice created:', created.id);
+
+    // Tạo invoice items cho từng khoản
+    const invoiceItems = [];
+    
+    // Tiền phòng
+    if (roomFee > 0) {
+      invoiceItems.push({
+        invoice_id: created.id,
+        description: 'Tiền thuê phòng',
+        amount: roomFee
+      });
+    }
+
+    // Tiền điện
+    if (electricityCost > 0) {
+      invoiceItems.push({
+        invoice_id: created.id,
+        description: `Điện: ${electricityOld} → ${electricityNew} kWh (${electricityRate.toLocaleString()} VND/kWh)`,
+        amount: electricityCost
+      });
+    }
+
+    // Tiền nước
+    if (waterCost > 0) {
+      invoiceItems.push({
+        invoice_id: created.id,
+        description: `Nước: ${waterOld} → ${waterNew} m³ (${waterRate.toLocaleString()} VND/m³)`,
+        amount: waterCost
+      });
+    }
+
+    // Tạo các invoice items
+    if (invoiceItems.length > 0) {
+      const createdItems = await InvoiceItem.bulkCreate(invoiceItems);
+      console.log('Invoice items created:', createdItems.length);
+    }
+
+    // Lưu chỉ số mới vào utility_readings nếu có
+    if (electricityNew > 0 || waterNew > 0) {
+      const room = contract.Room;
+      if (room) {
+        // Lưu chỉ số điện
+        if (electricityNew > 0) {
+          const electricityMeter = await UtilityMeter.findOne({
+            where: { room_id: room.id, meter_type: 'electricity' }
+          });
+          if (electricityMeter) {
+            await UtilityReading.create({
+              meter_id: electricityMeter.id,
+              reading_value: electricityNew,
+              reading_timestamp: new Date()
+            });
+          }
+        }
+
+        // Lưu chỉ số nước
+        if (waterNew > 0) {
+          const waterMeter = await UtilityMeter.findOne({
+            where: { room_id: room.id, meter_type: 'water' }
+          });
+          if (waterMeter) {
+            await UtilityReading.create({
+              meter_id: waterMeter.id,
+              reading_value: waterNew,
+              reading_timestamp: new Date()
+            });
+          }
+        }
+      }
+    }
+
     res.status(201).json(created);
   } catch (e) {
     console.error('Create invoice error:', e);
@@ -651,21 +754,119 @@ router.post('/invoices', async (req, res) => {
 });
 
 router.put('/invoices/:id', async (req, res) => {
-  const invoice = await Invoice.findByPk(req.params.id);
-  if (!invoice) return res.status(404).json({ message: 'Không tìm thấy hóa đơn' });
-  const body = { ...req.body };
-  if (body.contract_id !== undefined) body.contract_id = toIntOrNull(body.contract_id);
-  if (body.billing_month !== undefined) body.billing_month = toIntOrNull(body.billing_month);
-  if (body.billing_year !== undefined) body.billing_year = toIntOrNull(body.billing_year);
-  if (body.total_amount !== undefined) body.total_amount = Number(body.total_amount);
-  if (body.issue_date) body.issue_date = toDateOnly(body.issue_date);
-  if (body.due_date) body.due_date = toDateOnly(body.due_date);
-  // If month/year changed and due_date not provided, recalc to end of that month
-  if (!body.due_date && body.billing_month && body.billing_year) {
-    body.due_date = toDateOnly(endOfMonth(body.billing_year, body.billing_month));
+  try {
+    const invoice = await Invoice.findByPk(req.params.id);
+    if (!invoice) return res.status(404).json({ message: 'Không tìm thấy hóa đơn' });
+    
+    const {
+      contract_id,
+      total_amount,
+      billing_month,
+      billing_year,
+      status,
+      issue_date,
+      due_date,
+      electricity_old,
+      electricity_new,
+      electricity_rate,
+      water_old,
+      water_new,
+      water_rate,
+    } = req.body;
+
+    // Tính toán chi phí điện nước
+    const electricityOld = Number(electricity_old) || 0;
+    const electricityNew = Number(electricity_new) || 0;
+    const electricityRate = Number(electricity_rate) || 4000;
+    const electricityCost = Math.max(0, (electricityNew - electricityOld) * electricityRate);
+
+    const waterOld = Number(water_old) || 0;
+    const waterNew = Number(water_new) || 0;
+    const waterRate = Number(water_rate) || 15000;
+    const waterCost = Math.max(0, (waterNew - waterOld) * waterRate);
+
+    // Lấy thông tin hợp đồng để tính tiền phòng
+    const contractId = toIntOrNull(contract_id) || invoice.contract_id;
+    const contract = await Contract.findByPk(contractId, {
+      include: [{ model: Room }]
+    });
+    
+    if (!contract) {
+      return res.status(400).json({ message: 'Không tìm thấy hợp đồng' });
+    }
+
+    const roomFee = Number(contract.rent_price) || 0;
+    const calculatedTotal = roomFee + electricityCost + waterCost;
+
+    // Cập nhật hóa đơn
+    const updateData = {
+      contract_id: contractId,
+      total_amount: calculatedTotal,
+      billing_month: toIntOrNull(billing_month) || invoice.billing_month,
+      billing_year: toIntOrNull(billing_year) || invoice.billing_year,
+      status: status || invoice.status,
+      issue_date: issue_date ? toDateOnly(issue_date) : invoice.issue_date,
+      due_date: due_date ? toDateOnly(due_date) : invoice.due_date,
+    };
+
+    // If month/year changed and due_date not provided, recalc to end of that month
+    if (!updateData.due_date && updateData.billing_month && updateData.billing_year) {
+      updateData.due_date = toDateOnly(endOfMonth(updateData.billing_year, updateData.billing_month));
+    }
+
+    await invoice.update(updateData);
+
+    // Xóa invoice items cũ
+    await InvoiceItem.destroy({ where: { invoice_id: invoice.id } });
+
+    // Tạo invoice items mới
+    const invoiceItems = [];
+    
+    // Tiền phòng
+    if (roomFee > 0) {
+      invoiceItems.push({
+        invoice_id: invoice.id,
+        description: 'Tiền thuê phòng',
+        amount: roomFee
+      });
+    }
+
+    // Tiền điện
+    if (electricityCost > 0) {
+      invoiceItems.push({
+        invoice_id: invoice.id,
+        description: `Điện: ${electricityOld} → ${electricityNew} kWh (${electricityRate.toLocaleString()} VND/kWh)`,
+        amount: electricityCost
+      });
+    }
+
+    // Tiền nước
+    if (waterCost > 0) {
+      invoiceItems.push({
+        invoice_id: invoice.id,
+        description: `Nước: ${waterOld} → ${waterNew} m³ (${waterRate.toLocaleString()} VND/m³)`,
+        amount: waterCost
+      });
+    }
+
+    // Tạo các invoice items mới
+    if (invoiceItems.length > 0) {
+      await InvoiceItem.bulkCreate(invoiceItems);
+    }
+
+    // Lấy hóa đơn đã cập nhật với invoice_items
+    const updatedInvoice = await Invoice.findByPk(invoice.id, {
+      include: [
+        { model: Contract, include: [{ model: Room, include: [Property] }, { model: User, as: 'tenant' }] },
+        { model: InvoiceItem, as: 'invoice_items' }
+      ]
+    });
+
+    res.json(updatedInvoice);
+  } catch (error) {
+    console.error('Update invoice error:', error);
+    res.status(400).json({ message: 'Cập nhật hóa đơn thất bại' });
   }
-  await invoice.update(body);
-  res.json(invoice);
 });
 
 router.delete('/invoices/:id', async (req, res) => {
@@ -695,11 +896,52 @@ router.post('/payments', async (req, res) => {
   res.status(201).json(created);
 });
 
-// Utility readings
+// Utility meters
+router.get('/utility-meters', async (_req, res) => {
+  const meters = await UtilityMeter.findAll({
+    include: [{ model: Room }]
+  });
+  res.json(meters);
+});
+
 router.post('/utility-meters', async (req, res) => {
   const created = await UtilityMeter.create(req.body).catch(() => null);
   if (!created) return res.status(400).json({ message: 'Tạo công tơ thất bại' });
   res.status(201).json(created);
+});
+
+router.get('/utility-readings', async (_req, res) => {
+  const readings = await UtilityReading.findAll({
+    include: [{ model: UtilityMeter, include: [{ model: Room }] }],
+    order: [['reading_timestamp', 'DESC']]
+  });
+  res.json(readings);
+});
+
+// Lấy chỉ số cuối cùng của một phòng
+router.get('/utility-readings/latest/:roomId', async (req, res) => {
+  try {
+    const roomId = Number(req.params.roomId);
+    const meters = await UtilityMeter.findAll({
+      where: { room_id: roomId },
+      include: [{
+        model: UtilityReading,
+        order: [['reading_timestamp', 'DESC']],
+        limit: 1
+      }]
+    });
+    
+    const latestReadings = {};
+    for (const meter of meters) {
+      if (meter.UtilityReadings && meter.UtilityReadings.length > 0) {
+        latestReadings[meter.meter_type] = meter.UtilityReadings[0].reading_value;
+      }
+    }
+    
+    res.json(latestReadings);
+  } catch (error) {
+    res.status(400).json({ message: 'Lỗi khi lấy chỉ số' });
+  }
 });
 
 router.post('/utility-readings', async (req, res) => {

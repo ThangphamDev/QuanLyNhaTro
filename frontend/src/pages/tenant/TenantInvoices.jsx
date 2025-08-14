@@ -120,7 +120,9 @@ export default function TenantInvoices() {
                   <TableCell sx={{ fontWeight: 'bold' }}>Tháng/Năm</TableCell>
                   <TableCell sx={{ fontWeight: 'bold' }}>Ngày phát hành</TableCell>
                   <TableCell sx={{ fontWeight: 'bold' }}>Hạn thanh toán</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Số tiền</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Tiền phòng</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Điện nước</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Tổng tiền</TableCell>
                   <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
                   <TableCell sx={{ fontWeight: 'bold' }}>Thao tác</TableCell>
                 </TableRow>
@@ -147,6 +149,33 @@ export default function TenantInvoices() {
                     </TableCell>
                     <TableCell>
                       <Typography sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                        {new Intl.NumberFormat('vi-VN').format(invoice.room_fee || invoice.total_amount)} VND
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Box>
+                        {invoice.invoice_items && invoice.invoice_items.length > 0 ? (
+                          <>
+                            {invoice.invoice_items.filter(item => item.description.includes('Điện:')).map((item, index) => (
+                              <Typography key={index} variant="body2" color="text.secondary">
+                                ⚡ {new Intl.NumberFormat('vi-VN').format(item.amount)} VND
+                              </Typography>
+                            ))}
+                            {invoice.invoice_items.filter(item => item.description.includes('Nước:')).map((item, index) => (
+                              <Typography key={index} variant="body2" color="text.secondary">
+                                💧 {new Intl.NumberFormat('vi-VN').format(item.amount)} VND
+                              </Typography>
+                            ))}
+                          </>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            Không có
+                          </Typography>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Typography sx={{ fontWeight: 'bold', color: 'success.main' }}>
                         {new Intl.NumberFormat('vi-VN').format(invoice.total_amount)} VND
                       </Typography>
                     </TableCell>
@@ -194,7 +223,8 @@ export default function TenantInvoices() {
                   Chi tiết thanh toán
                 </Typography>
                 
-                {selectedInvoice.invoice_items?.length > 0 ? (
+                {/* Chi tiết từ invoice_items */}
+                {selectedInvoice.invoice_items && selectedInvoice.invoice_items.length > 0 ? (
                   <Table size="small">
                     <TableHead>
                       <TableRow>
@@ -205,9 +235,16 @@ export default function TenantInvoices() {
                     <TableBody>
                       {selectedInvoice.invoice_items.map((item, index) => (
                         <TableRow key={index}>
-                          <TableCell>{item.description}</TableCell>
+                          <TableCell>
+                            {item.description.includes('Điện:') && '⚡ '}
+                            {item.description.includes('Nước:') && '💧 '}
+                            {item.description.includes('Tiền thuê phòng') && '🏠 '}
+                            {item.description}
+                          </TableCell>
                           <TableCell align="right">
-                            {new Intl.NumberFormat('vi-VN').format(item.amount)} VND
+                            <Typography sx={{ fontWeight: 'bold', color: 'success.main' }}>
+                              {new Intl.NumberFormat('vi-VN').format(item.amount)} VND
+                            </Typography>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -222,6 +259,7 @@ export default function TenantInvoices() {
                   </Box>
                 )}
 
+                {/* Tổng cộng */}
                 <Box sx={{ borderTop: 1, borderColor: 'divider', pt: 2, mt: 2 }}>
                   <Typography variant="h6" sx={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
                     <span>Tổng cộng:</span>
